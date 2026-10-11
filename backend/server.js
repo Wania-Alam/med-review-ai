@@ -116,7 +116,7 @@ async function callAI(prompt, images) {
       ],
     }),
   });
-  if (!r.ok) throw new Error(`AI service returned ${r.status}`);
+  if (!r.ok) throw new Error(`AI service returned ${r.status}: ${(await r.text()).slice(0, 200)}`);
   return (await r.json()).choices[0].message.content.trim();
 }
 
