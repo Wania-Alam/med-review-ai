@@ -66,7 +66,7 @@ export default function PatientView({ id, mine, prompts, doctors, reloadPrompts,
           {mine && (
             <div className="row">
               <select aria-label="Doctor" value={consultDoc} onChange={(e) => setConsultDoc(e.target.value)}>
-                {doctors.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                {doctors.map((d) => <option key={d.id} value={d.id}>{d.name}{d.specialty ? ` — ${d.specialty}` : ''}</option>)}
               </select>
               <button className="ghost" onClick={share}>Share for consult</button>
             </div>
