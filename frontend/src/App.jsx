@@ -15,7 +15,9 @@ function AuthForm({ onDone }) {
     catch (x) { setErr(x.message); setBusy(false); }
   };
   return (
+    <div className="auth-bg">
     <form className="card login" onSubmit={submit}>
+      <img src="/logo.svg" alt="" width="56" height="56" />
       <h2>Med Review AI</h2>
       <p className="mut">{reg ? 'Create your doctor account' : 'Doctor sign in'}</p>
       {reg && <>
@@ -35,6 +37,7 @@ function AuthForm({ onDone }) {
         <a href="#" onClick={(e) => { e.preventDefault(); setErr(''); setMode(reg ? 'login' : 'register'); }}>{reg ? 'Sign in' : 'Create an account'}</a>
       </p>
     </form>
+  </div>
   );
 }
 
