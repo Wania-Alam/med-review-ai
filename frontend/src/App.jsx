@@ -109,7 +109,7 @@ export default function App() {
   return (
     <>
       <header>
-        <b>Med Review AI</b>
+        <b className="brand"><img src="/logo.svg" alt="" width="30" height="30" /> Med Review AI</b>
         <span>{me.name}{me.specialty ? ` · ${me.specialty}` : ''} &nbsp; <button onClick={logout}>Sign out</button></span>
       </header>
       <div className="app">
