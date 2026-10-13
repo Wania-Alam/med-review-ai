@@ -1,105 +1,210 @@
 # Med Review AI
 
-An AI-assisted clinical review portal where doctors manage patient records, upload reports and scans, and get an AI-generated summary of the main problem, which the doctor must **verify before anything is saved**.
+**An AI-assisted clinical report review portal with doctor-controlled verification.**
 
-**Live demo:** https://med-review-ai.vercel.app
+Med Review AI is a Human-Computer Interaction (HCI) semester project designed to help clinicians organize patient records, upload medical reports, and prepare AI-generated draft summaries for review. The clinician remains in control: AI output can be edited, accepted, or rejected, and a summary is saved to the patient's record only after acceptance.
 
-> Built as a Human-Computer Interaction (HCI) semester project. Use fictional patient data only. This is a demo, not a certified medical device.
+> **Project/demo notice:** This is an educational prototype, not a certified medical device and not a substitute for professional medical judgment. Use fictional or synthetic patient data only.
 
-## Features
+**Live demo:** https://med-review-ai.vercel.app  
+**Repository:** https://github.com/Wania-Alam/med-review-ai
 
-- **Secure doctor accounts:** registration protected by a hospital code, hashed passwords, cookie-based sessions, and login rate limiting
-- **Patient management:** add patients with a proper form, search the list, and view each patient's full record
-- **Consultations:** share a patient with another doctor (the dropdown shows each doctor's name and specialty), so they appear in the other doctor's list as a consult
-- **Report uploads:** PDF, TXT, PNG and JPG files (lab reports, X-rays, CT/MRI exports) stored with the patient
-- **AI summaries:** the AI reads the selected reports and drafts a summary of the actual problem
-- **Quick prompts:** ready-made prompts (general summary, abnormal values, radiology impression, consult brief) plus your own saved prompts
-- **Human verification:** the doctor can edit the draft, then **Accept** or **Reject**
-  - Accept: the summary is converted to a PDF and saved with the patient's record
-  - Reject: nothing is saved
-- **History:** saved summaries stay viewable and downloadable as PDFs
+## Contents
 
-## Workflow
+- [Key features](#key-features)
+- [User workflow](#user-workflow)
+- [Technology stack](#technology-stack)
+- [Architecture](#architecture)
+- [Requirements](#requirements)
+- [Run locally](#run-locally)
+- [Environment configuration](#environment-configuration)
+- [Deployment](#deployment)
+- [Current limitations](#current-limitations)
+- [Safety and privacy](#safety-and-privacy)
 
+## Key features
+
+- **Doctor accounts:** registration using a configured registration code, hashed passwords, cookie-based sessions, and rate limiting for authentication routes.
+- **Patient records:** create patient records, search the patient list, and open individual records.
+- **Consultations:** share a patient record with another doctor so the record can appear in that doctor's consultation list.
+- **Report uploads:** attach PDF, TXT, PNG, or JPG reports and images to a patient record.
+- **AI-assisted drafts:** send report content to a configured OpenAI-compatible AI endpoint to draft a clinical summary.
+- **Prompt shortcuts:** use built-in prompts for general summaries, abnormal values, radiology-style impressions, and consultation briefs; custom prompts can also be saved.
+- **Human verification:** review and edit generated text, then accept or reject it.
+- **PDF export and history:** accepted summaries are stored with the patient record and can be viewed or downloaded as PDFs.
+
+## User workflow
+
+```text
+Sign in / Create account
+          ↓
+Select or create a patient
+          ↓
+Upload report(s) or image(s)
+          ↓
+Generate an AI draft
+          ↓
+Clinician reviews and edits the draft
+          ↓
+       Accept or Reject
+        ↙          ↘
+Accepted             Rejected
+PDF saved            Draft discarded
+to patient record    and not saved
+          ↓
+View or download saved summaries
 ```
-Login -> Select patient -> Upload reports/scans -> Generate AI draft
-      -> Doctor edits and reviews -> Accept (PDF saved) / Reject (discarded)
-      -> View saved summaries anytime
-```
 
-## Tech stack
+## Technology stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React, Vite |
-| Backend | Node.js, Express (runs as a serverless function on Vercel) |
-| Database | MongoDB Atlas via Mongoose (files and PDFs stored in the database) |
-| AI | Any OpenAI-compatible API (OpenRouter free models in production, Ollama for local use) |
-| PDF | PDFKit and pdf-parse |
-| Hosting | Vercel |
+| Frontend | React, Vite, JavaScript |
+| Backend | Node.js, Express |
+| Database | MongoDB Atlas, Mongoose |
+| Authentication | bcryptjs, JSON Web Tokens, cookie-parser |
+| AI integration | Configurable OpenAI-compatible API; Ollama can be used for local inference |
+| PDF handling | pdf-parse, PDFKit |
+| Deployment | Vercel configuration included in the repository |
 
-## Project structure
+The configured AI provider and model depend on the environment variables. The repository's example configuration uses a hosted Llama model; **the README and configuration do not establish that Google MedGemma is currently integrated**. To use a different model, configure a compatible endpoint and confirm that the selected model supports the required text or image inputs.
 
+## Architecture
+
+```text
+React + Vite frontend
+        │
+        ▼
+Express backend / API
+   ├── Authentication and sessions
+   ├── Patient and consultation records
+   ├── Report upload and text extraction
+   ├── AI request handling
+   └── Summary PDF generation
+        │
+        ├────────► MongoDB
+        │          Patients, reports, prompts, summaries
+        │
+        └────────► Configured AI endpoint
+                   Draft clinical text
 ```
-api/index.js          Vercel entry point
-backend/server.js     Express API, models, AI and PDF logic
-frontend/             React app (Vite)
-vercel.json           Vercel configuration
-package.json          Dependencies and build scripts
+
+Main directories and files:
+
+```text
+backend/
+  server.js          Express API, database models, AI and PDF logic
+  package.json       Backend dependencies and scripts
+  .env.example       Example environment configuration
+frontend/
+  package.json       Frontend dependencies and scripts
+  src/               React application source
+vercel.json          Deployment/build and routing configuration
+package.json         Root scripts
 ```
+
+## Requirements
+
+- Node.js 18 or later
+- A MongoDB Atlas database (or another compatible MongoDB connection)
+- An AI provider API key, or a locally running Ollama-compatible endpoint
+- Git, if cloning the repository
 
 ## Run locally
 
-Requirements: Node.js 18+, a free MongoDB Atlas cluster, and an AI API key (or Ollama).
+### 1. Clone the repository
 
 ```bash
-# 1. Backend
-cd backend
-cp .env.example .env      # then fill in the values below
-npm install
-npm start                 # http://localhost:5000
-
-# 2. Frontend (new terminal)
-cd frontend
-npm install
-npm run dev               # http://localhost:5173
+git clone https://github.com/Wania-Alam/med-review-ai.git
+cd med-review-ai
 ```
 
-Open the site, choose **Create an account**, and enter your `REGISTRATION_CODE`.
+### 2. Configure the backend
 
-## Environment variables
+```bash
+cd backend
+```
 
-| Name | Purpose |
+Create a file named `.env` by copying `.env.example`, then fill in your own values:
+
+**Windows Command Prompt**
+```bat
+copy .env.example .env
+```
+
+**PowerShell**
+```powershell
+Copy-Item .env.example .env
+```
+
+Install backend dependencies and start the server:
+
+```bash
+npm install
+npm start
+```
+
+### 3. Start the frontend
+
+Open a **second terminal** from the repository root:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite (normally `http://localhost:5173`). Create an account using the registration code configured in the backend environment.
+
+## Environment configuration
+
+Set these values in `backend/.env` for local development. In a hosted deployment, configure them in the hosting provider's environment-variable settings. Do not commit real secrets to GitHub.
+
+| Variable | Purpose |
 |---|---|
-| `MONGODB_URI` | MongoDB Atlas connection string |
-| `JWT_SECRET` | Long random string used to sign login sessions |
-| `REGISTRATION_CODE` | Code doctors must enter to create an account |
-| `AI_BASE_URL` | AI provider endpoint, e.g. `https://openrouter.ai/api/v1` |
-| `AI_API_KEY` | API key for that provider |
-| `AI_MODEL` | Text model, e.g. `openrouter/free` |
-| `AI_VISION_MODEL` | Optional. A model that accepts images, so X-rays and scans can be analysed |
+| `MONGODB_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret used to sign session tokens; use a long random value |
+| `REGISTRATION_CODE` | Code required for doctor registration |
+| `AI_BASE_URL` | Base URL for an OpenAI-compatible API |
+| `AI_API_KEY` | API key for the selected AI provider |
+| `AI_MODEL` | Text model identifier |
+| `AI_VISION_MODEL` | Optional image-capable model identifier |
 
-To use a local Ollama model instead, set `AI_BASE_URL=http://localhost:11434/v1`, `AI_API_KEY=ollama` and `AI_MODEL=llama3.1:8b`.
+The example configuration includes a hosted Llama endpoint and an alternative Ollama configuration. Use the values appropriate to your chosen provider. An image-capable model is needed for image analysis; support and reliability vary by provider and model.
 
-## Deploy on Vercel
+## Deployment
 
-1. Push this repository to GitHub.
-2. Import it in Vercel with the **Other** framework preset and default settings.
-3. Add the environment variables above.
-4. Deploy, then open `/api/health` to confirm the API is running.
+The repository includes a `vercel.json` configuration for the frontend and backend.
 
-## Limitations
+1. Push the repository to GitHub.
+2. Import the repository into Vercel.
+3. Add the required environment variables in the Vercel project settings.
+4. Deploy and check the application's health endpoint at `/api/health`.
+5. Test registration, sign-in, patient records, report upload, AI draft generation, accept/reject behavior, and PDF downloads in the deployed environment.
 
-- Uploads are limited to 4 MB per file (Vercel request limit)
-- Image analysis depends on the vision model configured; free general-purpose models are **not** reliable for radiology and their output is only a preliminary description
-- DICOM (`.dcm`) files are not supported; export slices as PNG or JPG
-- Free-tier AI providers may log prompts, so never use real patient data
-- Free hosting can be slow on the first request after a quiet period
+Deployment can fail if required environment variables, database network access, or provider configuration are missing. Never place private API keys in frontend variables or client-side code.
 
-## Safety and ethics
+## Current limitations
 
-AI output is a draft, never a diagnosis. Every summary requires explicit doctor approval before it is stored, and rejected drafts are never saved.
+- Report uploads are limited to **4 MB per file** in the current deployment setup.
+- DICOM (`.dcm`) files are not supported directly; export supported image formats such as PNG or JPG when appropriate for a demo.
+- Image analysis depends on the configured vision model and should be treated as a preliminary aid, not a reliable radiology interpretation.
+- Hosted AI providers may process or retain prompts according to their own policies. Do not upload real patient information to this educational project.
+- Free hosting or model tiers may be slow, rate-limited, or unavailable at times.
+- AI output may be incomplete or incorrect and must be checked against the original report.
+
+## Safety and privacy
+
+- AI-generated content is a **draft**, not a diagnosis or treatment recommendation.
+- Clinicians should compare generated text with the original report and correct errors before accepting it.
+- Rejected drafts are not intended to be saved as approved summaries.
+- Use only synthetic or fictional patient data for coursework and demonstrations.
+- Keep database credentials, authentication secrets, and AI API keys private.
+
+## Academic context
+
+Developed as an HCI semester project to demonstrate a clinician-oriented interface, patient/report workflows, AI-assisted summarization, and human verification before saving output.
 
 ## Author
 
-Wania Alam
+**Wania Alam**
