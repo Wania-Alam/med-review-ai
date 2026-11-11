@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
 import PatientView from './PatientView.jsx';
+import LandingPage from './LandingPage.jsx';
 
-function AuthForm({ onDone }) {
+function AuthForm({ onDone, onBack }) {
   const [mode, setMode] = useState('login');
   const [f, setF] = useState({ name: '', specialty: '', username: '', password: '', code: '' });
   const [err, setErr] = useState('');
@@ -16,6 +17,9 @@ function AuthForm({ onDone }) {
   };
   return (
     <div className="auth-bg">
+      <button onClick={onBack} type="button">
+  ← Back to Home
+</button>
     <form className="card login" onSubmit={submit}>
       <img src="/logo.svg" alt="" width="56" height="56" />
       <h2>Med Review AI</h2>
@@ -89,6 +93,7 @@ export default function App() {
   const [q, setQ] = useState('');
   const [adding, setAdding] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+  const [showPortal, setShowPortal] = useState(false);
 
   const toast = (m) => { setToastMsg(m); setTimeout(() => setToastMsg(''), 3500); };
   const loadAll = async () => {
@@ -104,7 +109,18 @@ export default function App() {
   const saved = async (id) => { setAdding(false); setPatients(await api('/api/patients')); setSel(id); toast('Patient added'); };
 
   if (!ready) return null;
-  if (!me) return <AuthForm onDone={onLogin} />;
+  if (!me) {
+  return showPortal ? (
+    <AuthForm
+      onDone={onLogin}
+      onBack={() => setShowPortal(false)}
+    />
+  ) : (
+    <LandingPage
+      onLogin={() => setShowPortal(true)}
+    />
+  );
+}
 
   const list = patients.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
   const selected = patients.find((p) => p.id === sel);
